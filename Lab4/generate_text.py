@@ -18,13 +18,25 @@ def get_following_probs(f, word):
     return following_word_props[0][0]
 
 
-starting_word = "this"
-max_words = 100
-stop = 0
-
 if __name__ == "__main__":
+    args = sys.argv
+
+    if len(args) != 4:
+        raise Exception("Three variables must be passed! A file to open, a starting word, and the max number of words")
+    
+    if not args[1].endswith(".txt"):
+        raise Exception("The first argument passed must be a text file.")
+    
+    if not isinstance(args[2], str) or not isinstance(args[3], int):
+        raise Exception("The starting word must be a string and the max number of words an integer")
+    
+    file_name = args[1]
+    starting_word = args[2]
+    max_words = args[3]
+    stop = 0
+
     word_list = [starting_word]
-    with open("Lab4\shakespeare.txt", encoding="utf-8") as file:
+    with open(file_name, encoding="utf-8") as file:
         f = file.read()
 
         while not stop:
