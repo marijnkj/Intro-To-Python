@@ -35,7 +35,7 @@ if __name__ == "__main__":
         
         while not stop:
             print(word_list[-1])
-            words_following_this_word, probs_following_this_word = ts.get_following_word_probs(word_list[-1])
+            words_following_this_word, probs_following_this_word = ts.get_following_word_probs(f, word_list[-1])
             word_list.append(np.random.choice(words_following_this_word, p=probs_following_this_word))
             
             if len(word_list) == max_words:
