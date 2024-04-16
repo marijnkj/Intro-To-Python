@@ -50,7 +50,7 @@ def get_word_counts(f):
     return len(word_list), len(set(word_list))
 
 
-def get_most_frequent_words(f, chosen_word=None, top5=True):
+def get_most_frequent_words(f, dict_f, chosen_word=None, top5=True):
     """
     Takes a read text file and returns a dictionary of the most frequent words with their most frequent subsequent words
     """
@@ -66,10 +66,6 @@ def get_most_frequent_words(f, chosen_word=None, top5=True):
     elif chosen_word is not None:
         word_counts = [(word, count) for word, count in word_counts if word == chosen_word]
     
-    # Open following_word_counts.json 
-    save_file = open("following_word_counts.json", "r+")
-    dict_f = json.load(save_file)
-
     following_word_counts = {}
     for this_word, this_count in word_counts:
         # Get following word counts
@@ -87,22 +83,15 @@ def get_most_frequent_words(f, chosen_word=None, top5=True):
         if this_word not in dict_f.keys():
             dict_f[this_word] = (this_count, following_this_word_counts)
 
-    # Save updated following_word_counts.json
-    save_file.seek(0)
-    json.dump(dict_f, save_file)
-    save_file.close()
-
-    return following_word_counts
+    return following_word_counts, dict_f
 
 
-def get_following_word_probs(f, word):
-    dict_f = open("following_word_counts.json")
-    following_word_counts = json.load(dict_f)
-    
-    if word in following_word_counts.keys():
-        following_this_word_counts = following_word_counts[word][1]
+def get_following_word_probs(f, dict_f, word):
+    if word in dict_f.keys():
+        following_this_word_counts = dict_f[word][1]
     else:
-        following_this_word_counts = get_most_frequent_words(f, word, top5=False)[word][1]
+        following_word_counts, dict_f = get_most_frequent_words(f, dict_f, word, top5=False)
+        following_this_word_counts= following_word_counts[word][1]
 
     n_words_following_this_word = sum([this_count for this_word, this_count in following_this_word_counts])
     words_following_this_word = [this_word for this_word, this_count in following_this_word_counts]
@@ -118,7 +107,7 @@ def get(word):
     print(following_word_counts[word])
 
 
-def text_summary(f, output_file=None):
+def text_summary(f, dict_f, output_file=None):
     """
     Takes a read text file and prints all the summary stats
     """
@@ -132,7 +121,7 @@ def text_summary(f, output_file=None):
     n_words, n_unique_words = get_word_counts(f)  # Word count
     print(f"Number of words: {n_words}\nNumber of unique words: {n_unique_words}", file=output_file)
 
-    following_word_counts = get_most_frequent_words(f)
+    following_word_counts, dict_f = get_most_frequent_words(f, dict_f)
     following_word_counts = {
         word: (following_word_counts[word][0], following_word_counts[word][1][:3]) for word in list(following_word_counts)}
     for word, info in following_word_counts.items():
@@ -173,10 +162,20 @@ if __name__ == "__main__":
     with open(args[1], encoding="utf-8") as file:
         f = file.read()
 
+        # Open following_word_counts.json 
+        following_words_file = open("following_word_counts.json", "r+")
+        dict_f = json.load(following_words_file)
+
         if write_bool:
-            text_summary(f, output_file=args[2])
+            text_summary(f, dict_f, output_file=args[2])
         else:
-            text_summary(f)
+            text_summary(f, dict_f)
+
+        # Save updated following_word_counts.json
+        following_words_file.seek(0)
+        json.dump(dict_f, following_words_file)
+        following_words_file.close()
+
 
 file = open(r"C:\Users\marij\Documents\GitHub\Intro-To-Python\Lab4\shakespeare.txt", encoding="utf-8")
 f = file.read()

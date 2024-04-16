@@ -1,7 +1,7 @@
 import sys
-from collections import Counter
 import numpy as np
 import text_stats as ts
+import json
 
 
 if __name__ == "__main__":
@@ -33,12 +33,21 @@ if __name__ == "__main__":
     with open(file_name, encoding="utf-8") as file:
         f = file.read()
         
+        # Open following_word_counts.json 
+        following_words_file = open("following_word_counts.json", "r+")
+        dict_f = json.load(following_words_file)
+
         while not stop:
             print(word_list[-1])
-            words_following_this_word, probs_following_this_word = ts.get_following_word_probs(f, word_list[-1])
+            words_following_this_word, probs_following_this_word = ts.get_following_word_probs(f, dict_f, word_list[-1])
             word_list.append(np.random.choice(words_following_this_word, p=probs_following_this_word))
             
             if len(word_list) == max_words:
                 stop = 1
+
+        # Save updated following_word_counts.json
+        following_words_file.seek(0)
+        json.dump(dict_f, following_words_file)
+        following_words_file.close()
 
     print(" ".join(word_list))
